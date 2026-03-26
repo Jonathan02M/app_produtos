@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/produto.dart';
-import '../routes/app_routes.dart';
+import 'cadastro_produto.dart';
+import 'detalhe_produto.dart';
 
 class ListaProdutos extends StatefulWidget {
   const ListaProdutos({super.key});
@@ -9,74 +10,98 @@ class ListaProdutos extends StatefulWidget {
   State<ListaProdutos> createState() => _ListaProdutosState();
 }
 
-class _ListaProdutosState extends State<ListaProdutos> {
+class _ListaProdutosState extends State<ListaProdutos>
+    with SingleTickerProviderStateMixin {
   List<Produto> produtos = [];
+
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
   String formatarPreco(double valor) {
     return 'R\$ ${valor.toStringAsFixed(2)}';
   }
 
+  void adicionarProduto(Produto produto) {
+    setState(() {
+      produtos.add(produto);
+    });
+
+    _tabController.animateTo(0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('📦 Produtos')),
-      body: produtos.isEmpty
-          ? const Center(child: Text('Nenhum produto cadastrado'))
-          : ListView.builder(
-              itemCount: produtos.length,
-              itemBuilder: (context, index) {
-                final produto = produtos[index];
+      appBar: AppBar(
+        title: const Text('📦 App Produtos'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.list), text: 'Produtos'),
+            Tab(icon: Icon(Icons.add), text: 'Adicionar'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          produtos.isEmpty
+              ? const Center(child: Text('Nenhum produto cadastrado'))
+              : ListView.builder(
+                  itemCount: produtos.length,
+                  itemBuilder: (context, index) {
+                    final produto = produtos[index];
 
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ListTile(
-                    leading: Hero(
-                      tag: produto.nome,
-                      child: produto.imagemUrl.isNotEmpty
-                          ? Image.network(produto.imagemUrl,
-                              width: 50, fit: BoxFit.cover)
-                          : const Icon(Icons.image, color: Colors.blue),
-                    ),
-                    title: Text(produto.nome),
-                    subtitle: Text(formatarPreco(produto.preco)),
-                    onTap: () async {
-                      final result = await Navigator.pushNamed(
-                        context,
-                        AppRoutes.detalhe,
-                        arguments: produto,
-                      );
+                    return Card(
+                      margin: const EdgeInsets.all(10),
+                      child: ListTile(
+                        leading: produto.imagemUrl.isNotEmpty
+                            ? Image.network(produto.imagemUrl, width: 50)
+                            : const Icon(Icons.image),
+                        title: Text(produto.nome),
+                        subtitle: Text(formatarPreco(produto.preco)),
+                        trailing: IconButton(
+                          icon:
+                              const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              produtos.removeAt(index);
+                            });
+                          },
+                        ),
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  DetalheProduto(produto: produto),
+                            ),
+                          );
 
-                      if (result == 'delete') {
-                        setState(() {
-                          produtos.removeAt(index);
-                        });
-                      }
+                          if (result == 'delete') {
+                            setState(() {
+                              produtos.removeAt(index);
+                            });
+                          }
 
-                      if (result is Produto) {
-                        setState(() {
-                          produtos[index] = result;
-                        });
-                      }
-                    },
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () async {
-          final novoProduto =
-              await Navigator.pushNamed(context, AppRoutes.cadastro);
+                          if (result is Produto) {
+                            setState(() {
+                              produtos[index] = result;
+                            });
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
 
-          if (novoProduto != null) {
-            setState(() {
-              produtos.add(novoProduto as Produto);
-            });
-          }
-        },
+          CadastroProduto(onSalvar: adicionarProduto),
+        ],
       ),
     );
   }

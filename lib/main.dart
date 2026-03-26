@@ -18,20 +18,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFF121212),
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Colors.blue,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
-        ),
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
       ),
 
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const ListaProdutos(),
-        ...AppRoutes.routes,
-      },
+      initialRoute: AppRoutes.home,
       onGenerateRoute: AppRoutes.generateRoute,
+
+      routes: {
+        AppRoutes.home: (context) => const ListaProdutos(),
+      },
     );
   }
 }
