@@ -26,7 +26,7 @@ class _CadastroProdutoState extends State<CadastroProduto> {
     final produto = Produto(
       nome: nomeController.text,
       preco: double.parse(precoController.text),
-      descricao: 'Produto top 🚀',
+      descricao: 'Produto top ',
       imagemUrl: imagemController.text,
     );
 
